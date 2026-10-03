@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Controle de Vendas a Prazo</title>
+<style>
+:root{
+  --blue:#2563eb; --blue2:#1d4ed8; --red:#dc2626; --green:#16a34a;
+  --bg:#f5f7fb; --card:#fff; --text:#172033; --muted:#667085;
+  --border:#e5e7eb; --shadow:0 8px 24px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1100px;margin:auto;min-height:100vh;padding-bottom:90px}
+header{position:sticky;top:0;z-index:15;background:rgba(245,247,251,.96);backdrop-filter:blur(12px);padding:16px 16px 10px;border-bottom:1px solid rgba(229,231,235,.7)}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:20px;margin:0;font-weight:800}
+.subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+main{padding:16px}
+.tab{display:none}.tab.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+.metric-label{font-size:12px;color:var(--muted)}
+.metric{font-size:24px;font-weight:800;margin-top:6px}
+.metric.red{color:var(--red)} .metric.blue{color:var(--blue)} .metric.green{color:var(--green)}
+.primary{border:0;background:var(--blue);color:#fff;padding:13px 18px;border-radius:13px;font-weight:750;box-shadow:0 6px 16px rgba(37,99,235,.22)}
+.primary:hover{background:var(--blue2)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:210px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;outline:none}
+.search:focus,input:focus,textarea:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.list{display:grid;gap:10px}
+.sale{background:#fff;border:1px solid var(--border);border-left:5px solid var(--red);border-radius:15px;padding:14px;box-shadow:var(--shadow)}
+.sale.paid{border-left-color:var(--blue)}
+.sale-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.client{font-weight:800;font-size:16px}
+.meta{color:var(--muted);font-size:12px;margin-top:3px}
+.value{font-weight:850;white-space:nowrap}
+.status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;margin-top:8px}
+.status.debt{background:#fee2e2;color:#991b1b}.status.paid{background:#dbeafe;color:#1e40af}
+.sale-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.small{padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:700}
+.small.danger{color:var(--red)} .small.blue{color:var(--blue)}
+.sale-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px;padding-top:12px;border-top:1px solid var(--border)}
+.detail{background:#f8fafc;border-radius:10px;padding:9px 10px;min-width:0}
+.detail-label{display:block;font-size:10px;color:var(--muted);font-weight:750;text-transform:uppercase;margin-bottom:3px}
+.detail-value{font-size:13px;word-break:break-word}
+.detail.full{grid-column:1/-1}
+.images{display:flex;gap:9px;overflow:auto;margin-top:10px;padding-bottom:3px}
+.image-item{position:relative;flex:0 0 auto}
+.images img{width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--border);display:block;cursor:pointer}
+.image-hint{font-size:11px;color:var(--muted);margin-top:7px}
+.image-viewer{position:fixed;inset:0;background:rgba(15,23,42,.92);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.image-viewer.show{display:flex}
+.image-viewer img{max-width:96vw;max-height:88vh;object-fit:contain;border-radius:10px}
+.image-viewer-close{position:absolute;top:18px;right:18px;width:40px;height:40px;border:0;border-radius:50%;background:#fff;color:#172033;font-size:24px}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:16px}
+.form{display:grid;gap:13px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:12px;font-weight:750;color:#344054;display:grid;gap:6px}
+input,textarea,select{width:100%;border:1px solid var(--border);border-radius:11px;padding:12px;background:#fff;color:var(--text);outline:none}
+textarea{min-height:90px;resize:vertical}
+.file-box{border:1px dashed #b7c3d6;border-radius:12px;padding:14px;background:#fafcff}
+.file-box input{padding:0;border:0;background:transparent;box-shadow:none}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:650px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.close{border:0;background:#f2f4f7;border-radius:50%;width:34px;height:34px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;z-index:20;padding:7px 10px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(15,23,42,.06)}
+.nav-inner{width:100%;max-width:700px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.nav-btn{border:0;background:transparent;color:#667085;padding:8px 4px;border-radius:12px;font-size:11px;font-weight:700}
+.nav-btn.active{background:#eff6ff;color:var(--blue)}
+.nav-icon{display:block;font-size:18px;margin-bottom:2px}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.table-card{overflow:auto}.client-table{width:100%;border-collapse:collapse;font-size:13px}
+.client-table th,.client-table td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+.client-table th{font-size:11px;color:var(--muted);text-transform:uppercase}
+.chart-wrap{height:230px;position:relative;display:flex;align-items:center;justify-content:center}
+canvas{max-width:100%;max-height:100%}
+.legend{display:flex;justify-content:center;gap:15px;font-size:11px;color:var(--muted);margin-top:5px}
+.dot{width:9px;height:9px;display:inline-block;border-radius:50%;margin-right:4px}
+@media(max-width:760px){.cards{grid-template-columns:1fr 1fr}.report-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+@media(min-width:761px){
+  .app{padding-bottom:100px}
+  nav{position:fixed;bottom:18px;left:50%;right:auto;width:min(700px,calc(100% - 32px));transform:translateX(-50%);border:1px solid var(--border);border-radius:18px;padding:5px;box-shadow:var(--shadow);background:rgba(255,255,255,.97)}
+  .nav-inner{background:transparent}
+}
+@media(max-width:760px){
+  .app{padding-bottom:92px}
+  main{padding-bottom:18px}
+}
+
+.attachment-title{font-size:11px;font-weight:800;color:#475467;margin-top:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+.receipt-title{margin-top:14px}
+.img-btn{position:relative;border:0;background:transparent;padding:0;width:66px;flex:0 0 66px}
+.img-btn img{display:block;width:66px;height:66px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
+.img-btn span{position:absolute;left:4px;right:4px;bottom:4px;background:rgba(15,23,42,.72);color:#fff;border-radius:5px;font-size:9px;padding:2px}
+.payment-box{display:grid;gap:12px}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.lightbox.show{display:flex}
+.lightbox img{max-width:95vw;max-height:85vh;object-fit:contain;border-radius:10px}
+.lightbox iframe{width:min(95vw,900px);height:85vh;border:0;border-radius:10px;background:#fff}
+.receipt-item{position:relative;flex:0 0 auto}
+.receipt-btn{border:0;background:transparent;padding:0;cursor:pointer;display:block}
+.receipt-thumb{width:76px;height:76px;border:1px solid var(--border);border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:30px}
+.receipt-name{font-size:10px;color:var(--muted);max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}
+.lightbox-close{position:absolute;top:18px;right:18px;border:0;background:rgba(255,255,255,.16);color:#fff;width:40px;height:40px;border-radius:50%;font-size:25px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="header-row">
+    <div><h1>Controle de Vendas a Prazo</h1><div class="subtitle">Controle simples, rápido e local</div></div>
+    <button class="primary" onclick="openNewSale()">+ Nova venda</button>
+  </div>
+</header>
+
+<main>
+<section id="home" class="tab active">
+  <div class="cards">
+    <div class="card"><div class="metric-label">Total a receber</div><div id="totalReceber" class="metric red">R$ 0,00</div></div>
+    <div class="card"><div class="metric-label">Clientes devedores</div><div id="clientesDevedores" class="metric">0</div></div>
+    <div class="card"><div class="metric-label">Em atraso</div><div id="emAtraso" class="metric red">0</div></div>
+    <div class="card"><div class="metric-label">Recebidos este mês</div><div id="recebidosMes" class="metric blue">R$ 0,00</div></div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:17px;margin-top:0">Resumo</h2>
+    <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:0">
+      Registre vendas a prazo, acompanhe vencimentos e altere o status para <b>pago</b> quando receber.
+      Os dados ficam salvos neste navegador.
+    </p>
+  </div>
+</section>
+
+<section id="vencimentos" class="tab">
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="Buscar por cliente ou data (dia, mês ou ano)" oninput="renderSales()">
+    <select id="statusFilter" class="search" style="flex:0 1 150px" onchange="renderSales()">
+      <option value="all">Todos</option><option value="debt">Devendo</option><option value="paid">Pagos</option>
+    </select>
+  </div>
+  <div id="salesList" class="list"></div>
+</section>
+
+<section id="relatorio" class="tab">
+  <div id="clientReport" class="card table-card" style="margin-bottom:14px"></div>
+  <div class="report-grid">
+    <div class="card"><h3 style="font-size:14px;margin-top:0">Saldo negativo — mês atual</h3><div class="chart-wrap"><canvas id="chartNegCurrent" width="220" height="220"></canvas></div><div class="legend"><span><i class="dot" style="background:#dc2626"></i>Devedor</span><span><i class="dot" style="background:#e5e7eb"></i>Sem saldo</span></div></div>
+    <div class="card"><h3 style="font-size:14px;margin-top:0">Saldo positivo — mês atual</h3><div class="chart-wrap"><canvas id="chartPosCurrent" width="220" height="220"></canvas></div><div class="legend"><span><i class="dot" style="background:#2563eb"></i>Recebido</span><span><i class="dot" style="background:#e5e7eb"></i>Restante</span></div></div>
+    <div class="card"><h3 style="font-size:14px;margin-top:0">Saldo negativo — mês anterior</h3><div class="chart-wrap"><canvas id="chartNegPrev" width="220" height="220"></canvas></div><div class="legend"><span><i class="dot" style="background:#dc2626"></i>Devedor</span><span><i class="dot" style="background:#e5e7eb"></i>Sem saldo</span></div></div>
+    <div class="card"><h3 style="font-size:14px;margin-top:0">Saldo positivo — mês anterior</h3><div class="chart-wrap"><canvas id="chartPosPrev" width="220" height="220"></canvas></div><div class="legend"><span><i class="dot" style="background:#2563eb"></i>Recebido</span><span><i class="dot" style="background:#e5e7eb"></i>Restante</span></div></div>
+  </div>
+</section>
+</main>
+
+<nav><div class="nav-inner">
+  <button class="nav-btn active" data-tab="home" onclick="showTab('home')"><span class="nav-icon">⌂</span>Início</button>
+  <button class="nav-btn" data-tab="vencimentos" onclick="showTab('vencimentos')"><span class="nav-icon">▣</span>Vencimentos</button>
+  <button class="nav-btn" data-tab="relatorio" onclick="showTab('relatorio')"><span class="nav-icon">◔</span>Relatório</button>
+</div></nav>
+</div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+<div class="sheet">
+ <div class="sheet-head"><h2 style="margin:0;font-size:18px">Nova venda</h2><button class="close" onclick="closeModal()">×</button></div>
+ <form class="form" onsubmit="saveSale(event)">
+  <div class="form-grid">
+   <label>Nome do cliente<input id="client" required maxlength="100" placeholder="Ex.: João da Silva"></label>
+   <label>Produto<input id="product" required maxlength="120" placeholder="Ex.: Doces"></label>
+  </div>
+  <div class="form-grid">
+   <label>Quantidade<input id="quantity" required type="number" min="1" step="1" value="1"></label>
+   <label>Valor total (R$)<input id="amount" required type="number" min="0" step="0.01" placeholder="0,00"></label>
+  </div>
+  <div class="form-grid">
+   <label>Data de vencimento<input id="dueDate" required type="date"></label>
+   <label>Data e hora do registro<input id="createdAt" type="text" readonly></label>
+  </div>
+  <label>Observação<textarea id="notes" maxlength="1000" placeholder="Detalhes da venda, combinado com o cliente..."></textarea></label>
+  <label class="file-box">Anexar imagens<input id="images" type="file" accept="image/*" multiple></label>
+  <button class="primary" type="submit">Salvar venda</button>
+ </form>
+</div>
+</div>
+
+<div id="imageViewer" class="image-viewer" onclick="if(event.target===this)closeImageViewer()">
+ <button class="image-viewer-close" onclick="closeImageViewer()" aria-label="Fechar">×</button>
+ <img id="viewerImage" src="" alt="Imagem ampliada">
+</div>
+
+
+<div id="paymentModal" class="modal" onclick="if(event.target===this)closePayment()">
+<div class="sheet">
+ <div class="sheet-head"><h2 style="margin:0;font-size:18px">Confirmar pagamento</h2><button class="close" onclick="closePayment()">×</button></div>
+ <div class="payment-box">
+   <div style="font-size:13px;color:#475467">Ao confirmar, o registro será alterado para <b style="color:#2563eb">PAGO</b>. Você pode anexar um ou mais comprovantes.</div>
+   <label>Observação do pagamento<textarea id="paymentNotes" maxlength="1000" placeholder="Ex.: PIX recebido, pagamento em dinheiro, referência..."></textarea></label>
+   <label class="file-box">Comprovante(s) de pagamento<input id="paymentReceipts" type="file" accept="image/*,.pdf,application/pdf" multiple></label>
+   <div style="font-size:11px;color:#667085">Você pode anexar imagens ou PDF. Máximo de 8 MB por arquivo.</div>
+   <button type="button" class="primary" onclick="confirmPayment()">Confirmar pagamento</button>
+ </div>
+</div>
+</div>
+<div id="lightbox" class="lightbox" onclick="if(event.target===this)closeImage()">
+ <button class="lightbox-close" onclick="closeImage()">×</button>
+ <img id="lightboxImg" alt="Imagem ampliada">
+ <iframe id="lightboxFrame" title="Visualização do comprovante PDF" style="display:none"></iframe>
+</div>
+
+<script>
+const KEY='controle_vendas_a_prazo_v1';
+const DB_NAME='controle_vendas_a_prazo_arquivos';
+const DB_VERSION=1;
+let sales=JSON.parse(localStorage.getItem(KEY)||'[]');
+let paymentSaleId=null;
+
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const dateFmt = d => new Date(d).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+const todayISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const monthKey = d => { const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`; };
+const save=()=>localStorage.setItem(KEY,JSON.stringify(sales));
+
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('attachments'))db.createObjectStore('attachments',{keyPath:'id'});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function putAttachment(file,saleId,type){const db=await openDB();const id=(crypto.randomUUID?crypto.randomUUID():Date.now().toString()+Math.random());const data=await file.arrayBuffer();await new Promise((resolve,reject)=>{const tx=db.transaction('attachments','readwrite');tx.objectStore('attachments').put({id,saleId,type,name:file.name,mime:file.type||'application/octet-stream',size:file.size,data});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();return id;}
+async function getAttachment(id){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction('attachments','readonly');const r=tx.objectStore('attachments').get(id);r.onsuccess=()=>{const a=r.result;db.close();if(!a){resolve(null);return}resolve(a)};r.onerror=()=>{db.close();reject(r.error)}})}
+async function deleteAttachment(id){if(!id)return;const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction('attachments','readwrite');tx.objectStore('attachments').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();}
+async function migrateOldAttachments(){
+  let changed=false;
+  for(const s of sales){
+    if(Array.isArray(s.images)&&s.images.length){
+      const ids=[];for(const data of s.images){if(typeof data!=='string')continue;const id=await saveDataUrlAsAttachment(data,s.id,'image');ids.push(id)}
+      s.imageIds=[...(s.imageIds||[]),...ids];delete s.images;changed=true;
+    }
+    if(Array.isArray(s.receipts)&&s.receipts.length){
+      const ids=[];for(const data of s.receipts){if(typeof data!=='string')continue;const id=await saveDataUrlAsAttachment(data,s.id,'receipt');ids.push(id)}
+      s.receiptIds=[...(s.receiptIds||[]),...ids];delete s.receipts;changed=true;
+    }
+  }
+  if(changed)save();
+}
+async function saveDataUrlAsAttachment(data,saleId,type){const parts=data.split(',');const meta=parts[0]||'';const mime=(meta.match(/data:([^;]+)/)||[])[1]||'application/octet-stream';const bin=atob(parts[1]||'');const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);const blob=new Blob([arr],{type:mime});return putAttachment(new File([blob],type==='receipt'?'comprovante':'imagem',{type:mime}),saleId,type)}
+function dataUrlFromBlob(a){return URL.createObjectURL(new Blob([a.data],{type:a.mime}))}
+
+function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));if(id==='vencimentos')renderSales();if(id==='relatorio')renderReport();updateDashboard();window.scrollTo({top:0,behavior:'smooth'});}
+function openNewSale(){document.getElementById('modal').classList.add('show');document.getElementById('createdAt').value=dateFmt(new Date());document.getElementById('dueDate').value=todayISO();setTimeout(()=>document.getElementById('client').focus(),100)}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+async function saveSale(e){e.preventDefault();const files=[...document.getElementById('images').files];const sale={id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(),client:document.getElementById('client').value.trim(),product:document.getElementById('product').value.trim(),quantity:Number(document.getElementById('quantity').value),amount:Number(document.getElementById('amount').value),dueDate:document.getElementById('dueDate').value,createdAt:new Date().toISOString(),notes:document.getElementById('notes').value.trim(),imageIds:[],receiptIds:[],status:'debt',paidAt:null,paymentNotes:''};
+ try{for(const f of files){if(f.size>8*1024*1024){alert(`O arquivo ${f.name} excede o limite de 8 MB.`);return}sale.imageIds.push(await putAttachment(f,sale.id,'image'));}sales.unshift(sale);save();closeModal();e.target.reset();renderSales();updateDashboard();showTab('vencimentos');}catch(err){console.error(err);alert('Não foi possível salvar o anexo. O registro não foi alterado.');}}
+function isLate(s){return s.status==='debt'&&new Date(s.dueDate+'T23:59:59')<new Date()}
+
+async function renderSales(){const q=(document.getElementById('search')?.value||'').toLowerCase().trim();const filter=document.getElementById('statusFilter')?.value||'all';const list=sales.filter(s=>{const dueBR=new Date(s.dueDate+'T12:00:00').toLocaleDateString('pt-BR');const createdBR=new Date(s.createdAt).toLocaleString('pt-BR');const hay=`${s.client} ${s.product} ${s.dueDate} ${dueBR} ${createdBR} ${s.notes||''} ${s.paymentNotes||''}`.toLowerCase();return(!q||hay.includes(q))&&(filter==='all'||s.status===filter)});const el=document.getElementById('salesList');if(!list.length){el.innerHTML='<div class="empty">Nenhum registro encontrado.</div>';return}
+ const html=await Promise.all(list.map(async s=>{const late=isLate(s),dueDateBR=new Date(s.dueDate+'T12:00:00').toLocaleDateString('pt-BR'),createdBR=dateFmt(s.createdAt),paidBR=s.paidAt?dateFmt(s.paidAt):'—';
+ let imgs='';if(s.imageIds?.length){const arr=await Promise.all(s.imageIds.map(id=>getAttachment(id)));imgs=`<div class="image-hint">Imagens anexadas — toque/clique para visualizar.</div><div class="images">${arr.map((a,idx)=>a?`<div class="image-item"><button class="img-btn" onclick="openAttachment('${s.id}','image',${idx})"><span>Imagem ${idx+1}</span></button></div>`:'').join('')}</div>`}else imgs='<div class="image-hint">Nenhuma imagem anexada.</div>';
+ let receipts='';if(s.receiptIds?.length){const arr=await Promise.all(s.receiptIds.map(id=>getAttachment(id)));receipts=`<div class="attachment-title receipt-title">Comprovantes de pagamento</div><div class="images">${arr.map((a,idx)=>a?`<div class="image-item"><button class="img-btn" onclick="openAttachment('${s.id}','receipt',${idx})"><span>${a.mime==='application/pdf'?'PDF':'Imagem'}</span></button></div>`:'').join('')}</div>`}
+ return `<article class="sale ${s.status==='paid'?'paid':''}"><div class="sale-top"><div><div class="client">${esc(s.client)}</div><div class="meta">${esc(s.product)} · ${s.quantity} un.</div></div><div class="value">${money(s.amount)}</div></div><span class="status ${s.status==='paid'?'paid':'debt'}">${s.status==='paid'?'PAGO':'DEVENDO'}${late?' · EM ATRASO':''}</span><div class="sale-details"><div class="detail"><span class="detail-label">Cliente</span><div class="detail-value">${esc(s.client)}</div></div><div class="detail"><span class="detail-label">Produto</span><div class="detail-value">${esc(s.product)}</div></div><div class="detail"><span class="detail-label">Quantidade</span><div class="detail-value">${s.quantity}</div></div><div class="detail"><span class="detail-label">Valor</span><div class="detail-value">${money(s.amount)}</div></div><div class="detail"><span class="detail-label">Vencimento</span><div class="detail-value">${dueDateBR}</div></div><div class="detail"><span class="detail-label">Data e hora da venda</span><div class="detail-value">${createdBR}</div></div><div class="detail"><span class="detail-label">Status</span><div class="detail-value">${s.status==='paid'?'Pago':'Devendo'}</div></div><div class="detail"><span class="detail-label">Data e hora do pagamento</span><div class="detail-value">${paidBR}</div></div><div class="detail full"><span class="detail-label">Observação</span><div class="detail-value">${s.notes?esc(s.notes):'Nenhuma observação informada.'}</div></div>${s.status==='paid'?`<div class="detail full"><span class="detail-label">Observação do pagamento</span><div class="detail-value">${s.paymentNotes?esc(s.paymentNotes):'Nenhuma observação de pagamento.'}</div></div>`:''}</div>${imgs}${receipts}<div class="sale-actions">${s.status==='debt'?`<button class="small blue" onclick="openPayment('${s.id}')">✓ Marcar como pago</button>`:`<button class="small" onclick="markDebt('${s.id}')">↩ Voltar para devendo</button>`}<button class="small" onclick="editNotes('${s.id}')">✎ Observação</button><button class="small danger" onclick="deleteSale('${s.id}')">Excluir</button></div></article>`}));el.innerHTML=html.join('')}
+
+function openPayment(id){paymentSaleId=id;document.getElementById('paymentReceipts').value='';document.getElementById('paymentNotes').value='';document.getElementById('paymentModal').classList.add('show')}
+function closePayment(){document.getElementById('paymentModal').classList.remove('show');paymentSaleId=null}
+async function confirmPayment(){const s=sales.find(x=>x.id===paymentSaleId);if(!s)return;const files=[...document.getElementById('paymentReceipts').files];const note=document.getElementById('paymentNotes').value.trim();try{const ids=[];for(const f of files){if(f.size>8*1024*1024){alert(`O arquivo ${f.name} excede o limite de 8 MB.`);return}ids.push(await putAttachment(f,s.id,'receipt'));}s.status='paid';s.paidAt=new Date().toISOString();s.paymentNotes=note;s.receiptIds=[...(s.receiptIds||[]),...ids];save();closePayment();await renderSales();updateDashboard();renderReport();}catch(err){console.error(err);alert('Não foi possível anexar o comprovante. A venda não foi marcada como paga.')} }
+function markDebt(id){const s=sales.find(x=>x.id===id);if(!s)return;s.status='debt';s.paidAt=null;s.paymentNotes='';save();renderSales();updateDashboard();renderReport()}
+async function openAttachment(saleId,type,index){const s=sales.find(x=>x.id===saleId);if(!s)return;const ids=type==='receipt'?(s.receiptIds||[]):(s.imageIds||[]);const a=await getAttachment(ids[index]);if(!a)return;const url=dataUrlFromBlob(a);if(a.mime==='application/pdf'){const w=window.open();if(w){w.document.write(`<title>${esc(a.name)}</title><iframe src="${url}" style="width:100%;height:100%;border:0"></iframe>`);w.document.close()}else alert('O navegador bloqueou a abertura do PDF. Permita pop-ups para visualizar o comprovante.')}else{document.getElementById('lightboxImg').src=url;document.getElementById('lightbox').classList.add('show');document.getElementById('lightbox').dataset.objectUrl=url}}
+function closeImage(){const lb=document.getElementById('lightbox');const u=lb.dataset.objectUrl;if(u)URL.revokeObjectURL(u);lb.dataset.objectUrl='';lb.classList.remove('show');document.getElementById('lightboxImg').src=''}
+function editNotes(id){const s=sales.find(x=>x.id===id);if(!s)return;const n=prompt('Observação:',s.notes||'');if(n!==null){s.notes=n;save();renderSales();renderReport()}}
+async function deleteSale(id){if(confirm('Excluir este registro?')){const s=sales.find(x=>x.id===id);if(s){for(const id2 of [...(s.imageIds||[]),...(s.receiptIds||[])])await deleteAttachment(id2)}sales=sales.filter(x=>x.id!==id);save();renderSales();updateDashboard();renderReport()}}
+function openImageViewer(saleId,index){openAttachment(saleId,'image',index)}
+function closeImageViewer(){closeImage()}
+function updateDashboard(){const debt=sales.filter(s=>s.status==='debt');document.getElementById('totalReceber').textContent=money(debt.reduce((a,s)=>a+s.amount,0));document.getElementById('clientesDevedores').textContent=new Set(debt.map(s=>s.client.toLowerCase())).size;document.getElementById('emAtraso').textContent=debt.filter(isLate).length;const now=new Date(),mk=monthKey(now);const received=sales.filter(s=>s.status==='paid'&&s.paidAt&&monthKey(s.paidAt)===mk).reduce((a,s)=>a+s.amount,0);document.getElementById('recebidosMes').textContent=money(received)}
+function renderReport(){const debtByClient={};sales.filter(s=>s.status==='debt').forEach(s=>debtByClient[s.client]=(debtByClient[s.client]||0)+s.amount);const rows=Object.entries(debtByClient).sort((a,b)=>b[1]-a[1]).map(([client,balance])=>{const records=sales.filter(s=>s.status==='debt'&&s.client===client);const oldest=records.reduce((a,s)=>new Date(s.dueDate)<new Date(a.dueDate)?s:a,records[0]);const days=Math.max(0,Math.floor((new Date()-new Date(oldest.dueDate+'T23:59:59'))/86400000));return `<tr><td>${esc(client)}</td><td>${money(balance)}</td><td>${days}</td></tr>`}).join('');document.getElementById('clientReport').innerHTML=`<h3 style="font-size:15px;margin-top:0">Clientes e saldo devedor</h3>${rows?`<table class="client-table"><thead><tr><th>Cliente</th><th>Saldo devedor</th><th>Dias em atraso</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">Nenhum cliente devedor.</div>'}`;const now=new Date(),cur=monthKey(now),prevD=new Date(now.getFullYear(),now.getMonth()-1,1),prev=monthKey(prevD);const calc=mk=>{const arr=sales.filter(s=>monthKey(s.createdAt)===mk);const negative=arr.filter(s=>s.status==='debt').reduce((a,s)=>a+s.amount,0);const positive=arr.filter(s=>s.status==='paid').reduce((a,s)=>a+s.amount,0);return{negative,positive,total:negative+positive}};const c=calc(cur),p=calc(prev);drawPie('chartNegCurrent',c.negative,c.total,'#dc2626');drawPie('chartPosCurrent',c.positive,c.total,'#2563eb');drawPie('chartNegPrev',p.negative,p.total,'#dc2626');drawPie('chartPosPrev',p.positive,p.total,'#2563eb')}
+function drawPie(id,value,total,color){const c=document.getElementById(id),ctx=c.getContext('2d'),w=c.width,h=c.height,r=82,cx=w/2,cy=h/2;ctx.clearRect(0,0,w,h);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#e5e7eb';ctx.fill();const ratio=total?Math.min(1,value/total):0;if(ratio){ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*ratio);ctx.closePath();ctx.fillStyle=color;ctx.fill()}ctx.beginPath();ctx.arc(cx,cy,53,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.fillStyle='#172033';ctx.textAlign='center';ctx.font='700 16px system-ui';ctx.fillText(total?Math.round(ratio*100)+'%':'0%',cx,cy+6)}
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+(async()=>{try{await migrateOldAttachments()}catch(e){console.warn('Migração de anexos não concluída:',e)}updateDashboard();renderSales()})();
+</script>
+</body>
+</html>
